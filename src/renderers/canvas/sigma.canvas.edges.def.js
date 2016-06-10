@@ -20,7 +20,7 @@
         edgeColor = settings('edgeColor'),
         defaultNodeColor = settings('defaultNodeColor'),
         defaultEdgeColor = settings('defaultEdgeColor'),
-        dash = [0];
+        dash = [1,0];
 
     if (!color)
       switch (edgeColor) {
@@ -36,13 +36,13 @@
       }
     switch (style) {
         case 'dotted':
-            dash = [2];
+            dash = [2,2];
             break;
         case 'dashed':
             dash = [8,3];
             break;
         default:
-            dash = [0];
+            dash = [1,0];
             break;
     }
     if (context.setLineDash) {

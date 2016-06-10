@@ -31,7 +31,7 @@
         aY = sY + (tY - sY) * (d - aSize - tSize) / d,
         vX = (tX - sX) * aSize / d,
         vY = (tY - sY) * aSize / d,
-        dash = [0];
+        dash = [1,0];
 
     if (!color)
       switch (edgeColor) {
@@ -47,18 +47,22 @@
       }
     switch (style) {
         case 'dotted':
-            dash = [2];
+            dash = [2,2];
             break;
         case 'dashed':
             dash = [8,3];
             break;
         default:
-            dash = [0];
+            dash = [1,0];
             break;
     }
+    
+    
     if (context.setLineDash) {
         context.setLineDash(dash);
     }
+    
+    
     context.strokeStyle = color;
     context.lineWidth = size;
     context.beginPath();

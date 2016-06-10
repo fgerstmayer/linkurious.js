@@ -33,7 +33,7 @@
         aY,
         vX,
         vY,
-        dash = [0];
+        dash = [1,0];
 
     cp = (source.id === target.id) ?
       sigma.utils.getSelfLoopControlPoints(sX, sY, tSize) :
@@ -68,13 +68,13 @@
       }
     switch (style) {
         case 'dotted':
-            dash = [2];
+            dash = [2,2];
             break;
         case 'dashed':
             dash = [8,3];
             break;
         default:
-            dash = [0];
+            dash = [1,0];
             break;
     }
     if (context.setLineDash) {
