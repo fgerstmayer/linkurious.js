@@ -14,11 +14,13 @@
    */
   sigma.canvas.edges.def = function(edge, source, target, context, settings) {
     var color = edge.color,
+        style = edge.style,
         prefix = settings('prefix') || '',
         size = edge[prefix + 'size'] || 1,
         edgeColor = settings('edgeColor'),
         defaultNodeColor = settings('defaultNodeColor'),
-        defaultEdgeColor = settings('defaultEdgeColor');
+        defaultEdgeColor = settings('defaultEdgeColor'),
+        dash = [0];
 
     if (!color)
       switch (edgeColor) {
@@ -32,7 +34,20 @@
           color = defaultEdgeColor;
           break;
       }
-
+    switch (style) {
+        case 'dotted':
+            dash = [2];
+            break;
+        case 'dashed':
+            dash = [8,3];
+            break;
+        default:
+            dash = [0];
+            break;
+    }
+    if (context.setLineDash) {
+        context.setLineDash(dash);
+    }
     context.strokeStyle = color;
     context.lineWidth = size;
     context.beginPath();

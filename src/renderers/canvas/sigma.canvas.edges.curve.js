@@ -14,6 +14,7 @@
    */
   sigma.canvas.edges.curve = function(edge, source, target, context, settings) {
     var color = edge.color,
+        style = edge.style,
         prefix = settings('prefix') || '',
         size = edge[prefix + 'size'] || 1,
         edgeColor = settings('edgeColor'),
@@ -24,7 +25,8 @@
         sX = source[prefix + 'x'],
         sY = source[prefix + 'y'],
         tX = target[prefix + 'x'],
-        tY = target[prefix + 'y'];
+        tY = target[prefix + 'y'],
+        dash = [0];
 
     cp = (source.id === target.id) ?
       sigma.utils.getSelfLoopControlPoints(sX, sY, sSize) :
@@ -42,7 +44,22 @@
           color = defaultEdgeColor;
           break;
       }
-
+      
+    switch (style) {
+        case 'dotted':
+            dash = [2];
+            break;
+        case 'dashed':
+            dash = [8,3];
+            break;
+        default:
+            dash = [0];
+            break;
+    }
+    if (context.setLineDash) {
+        context.setLineDash(dash);
+    }
+    
     context.strokeStyle = color;
     context.lineWidth = size;
     context.beginPath();
