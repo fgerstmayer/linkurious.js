@@ -717,7 +717,7 @@
   /**
    * The current version of sigma:
    */
-  sigma.version = '1.5.0';
+  sigma.version = '1.5.1';
 
 
   /**
@@ -3368,6 +3368,9 @@ if (typeof exports !== 'undefined') {
      * CAPTORS SETTINGS:
      * *****************
      */
+    // {boolean} If true, the user will need to click on the visualization element
+    // in order to focus it
+    clickToFocus: false,
     // {boolean}
     touchEnabled: true,
     // {boolean}
@@ -5804,6 +5807,8 @@ if (typeof exports !== 'undefined') {
         _downStartTime,
         _movingTimeoutId;
 
+    this.eltFocused = false;
+
     sigma.classes.dispatcher.extend(this);
 
     sigma.utils.doubleClick(_target, 'click', _doubleClickHandler);
@@ -5813,6 +5818,7 @@ if (typeof exports !== 'undefined') {
     _target.addEventListener('mousedown', _downHandler, false);
     _target.addEventListener('click', _clickHandler, false);
     _target.addEventListener('mouseout', _outHandler, false);
+    _target.addEventListener('mouseenter', _enterHandler, false);
     document.addEventListener('mouseup', _upHandler, false);
 
 
@@ -5837,6 +5843,12 @@ if (typeof exports !== 'undefined') {
 
     // MOUSE EVENTS:
     // *************
+
+    function _enterHandler(e) {
+      if (!_settings('clickToFocus')) {
+        target.focus();
+      }
+    }
 
     /**
      * The handler listening to the 'move' mouse event. It will effectively
@@ -5995,6 +6007,9 @@ if (typeof exports !== 'undefined') {
      * @param {event} e A mouse event.
      */
     function _outHandler(e) {
+      _self.eltFocused = false;
+      target.blur();
+
       if (_settings('mouseEnabled'))
         _self.dispatchEvent('mouseout');
     }
@@ -6006,6 +6021,9 @@ if (typeof exports !== 'undefined') {
      * @param {event} e A mouse event.
      */
     function _clickHandler(e) {
+      _self.eltFocused = true;
+      target.focus();
+
       if (_settings('mouseEnabled')) {
         var event = sigma.utils.mouseCoords(e);
         event.isDragging =
@@ -6074,7 +6092,7 @@ if (typeof exports !== 'undefined') {
           ratio,
           animation;
 
-      if (_settings('mouseEnabled') && _settings('mouseWheelEnabled')) {
+      if (_settings('mouseEnabled') && _settings('mouseWheelEnabled') && (!_settings('clickToFocus') || _self.eltFocused)) {
         ratio = sigma.utils.getDelta(e) > 0 ?
           1 / _settings('zoomingRatio') :
           _settings('zoomingRatio');
@@ -9881,11 +9899,13 @@ if (typeof exports !== 'undefined') {
    */
   sigma.canvas.edges.def = function(edge, source, target, context, settings) {
     var color = edge.color,
+        style = edge.style,
         prefix = settings('prefix') || '',
         size = edge[prefix + 'size'] || 1,
         edgeColor = settings('edgeColor'),
         defaultNodeColor = settings('defaultNodeColor'),
-        defaultEdgeColor = settings('defaultEdgeColor');
+        defaultEdgeColor = settings('defaultEdgeColor'),
+        dash = [1,0];
 
     if (!color)
       switch (edgeColor) {
@@ -9899,7 +9919,20 @@ if (typeof exports !== 'undefined') {
           color = defaultEdgeColor;
           break;
       }
-
+    switch (style) {
+        case 'dotted':
+            dash = [2,2];
+            break;
+        case 'dashed':
+            dash = [8,3];
+            break;
+        default:
+            dash = [1,0];
+            break;
+    }
+    if (context.setLineDash) {
+        context.setLineDash(dash);
+    }
     context.strokeStyle = color;
     context.lineWidth = size;
     context.beginPath();
@@ -9931,6 +9964,7 @@ if (typeof exports !== 'undefined') {
    */
   sigma.canvas.edges.curve = function(edge, source, target, context, settings) {
     var color = edge.color,
+        style = edge.style,
         prefix = settings('prefix') || '',
         size = edge[prefix + 'size'] || 1,
         edgeColor = settings('edgeColor'),
@@ -9941,7 +9975,8 @@ if (typeof exports !== 'undefined') {
         sX = source[prefix + 'x'],
         sY = source[prefix + 'y'],
         tX = target[prefix + 'x'],
-        tY = target[prefix + 'y'];
+        tY = target[prefix + 'y'],
+        dash = [1,0];
 
     cp = (source.id === target.id) ?
       sigma.utils.getSelfLoopControlPoints(sX, sY, sSize) :
@@ -9959,7 +9994,22 @@ if (typeof exports !== 'undefined') {
           color = defaultEdgeColor;
           break;
       }
-
+      
+    switch (style) {
+        case 'dotted':
+            dash = [2,2];
+            break;
+        case 'dashed':
+            dash = [8,3];
+            break;
+        default:
+            dash = [1,0];
+            break;
+    }
+    if (context.setLineDash) {
+        context.setLineDash(dash);
+    }
+    
     context.strokeStyle = color;
     context.lineWidth = size;
     context.beginPath();
@@ -9989,6 +10039,7 @@ if (typeof exports !== 'undefined') {
    */
   sigma.canvas.edges.arrow = function(edge, source, target, context, settings) {
     var color = edge.color,
+        style = edge.style,
         prefix = settings('prefix') || '',
         edgeColor = settings('edgeColor'),
         defaultNodeColor = settings('defaultNodeColor'),
@@ -10004,7 +10055,8 @@ if (typeof exports !== 'undefined') {
         aX = sX + (tX - sX) * (d - aSize - tSize) / d,
         aY = sY + (tY - sY) * (d - aSize - tSize) / d,
         vX = (tX - sX) * aSize / d,
-        vY = (tY - sY) * aSize / d;
+        vY = (tY - sY) * aSize / d,
+        dash = [1,0];
 
     if (!color)
       switch (edgeColor) {
@@ -10018,7 +10070,24 @@ if (typeof exports !== 'undefined') {
           color = defaultEdgeColor;
           break;
       }
-
+    switch (style) {
+        case 'dotted':
+            dash = [2,2];
+            break;
+        case 'dashed':
+            dash = [8,3];
+            break;
+        default:
+            dash = [1,0];
+            break;
+    }
+    
+    
+    if (context.setLineDash) {
+        context.setLineDash(dash);
+    }
+    
+    
     context.strokeStyle = color;
     context.lineWidth = size;
     context.beginPath();
@@ -10057,6 +10126,7 @@ if (typeof exports !== 'undefined') {
   sigma.canvas.edges.curvedArrow =
     function(edge, source, target, context, settings) {
     var color = edge.color,
+        style = edge.style,
         prefix = settings('prefix') || '',
         edgeColor = settings('edgeColor'),
         defaultNodeColor = settings('defaultNodeColor'),
@@ -10073,7 +10143,8 @@ if (typeof exports !== 'undefined') {
         aX,
         aY,
         vX,
-        vY;
+        vY,
+        dash = [1,0];
 
     cp = (source.id === target.id) ?
       sigma.utils.getSelfLoopControlPoints(sX, sY, tSize) :
@@ -10106,7 +10177,20 @@ if (typeof exports !== 'undefined') {
           color = defaultEdgeColor;
           break;
       }
-
+    switch (style) {
+        case 'dotted':
+            dash = [2,2];
+            break;
+        case 'dashed':
+            dash = [8,3];
+            break;
+        default:
+            dash = [1,0];
+            break;
+    }
+    if (context.setLineDash) {
+        context.setLineDash(dash);
+    }
     context.strokeStyle = color;
     context.lineWidth = size;
     context.beginPath();
